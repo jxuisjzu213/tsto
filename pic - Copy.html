@@ -1,92 +1,107 @@
-<!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>معلومات صفحة فيسبوك</title>
+    <meta charset="utf-8">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Facebook Posts</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            direction: rtl;
-            text-align: center;
-            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f2f5;
         }
         .container {
-            width: 50%;
-            margin: 50px auto;
+            text-align: center;
             background: white;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
-        .info {
-            margin: 10px 0;
-            padding: 10px;
-            background: #eee;
-            border-radius: 5px;
+        .post-box {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border-radius: 15px;
+            background: #f8f9fa;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
         }
-        button {
-            margin-top: 20px;
-            padding: 10px 15px;
-            border: none;
-            background: blue;
-            color: white;
-            cursor: pointer;
-            border-radius: 5px;
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .btn {
+            width: 48%;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>معلومات صفحة فيسبوك</h2>
-        <div id="page-info">جاري تحميل المعلومات...</div>
-        <button onclick="loadPageInfo()">تحميل المعلومات</button>
+        <!-- صندوق المنشور -->
+        <div id="postBox" class="post-box">جارٍ تحميل المنشورات...</div>
+
+        <!-- أزرار التنقل بين المنشورات -->
+        <div class="btn-container">
+            <button id="prevPost" class="btn btn-secondary">⬅ المنشور السابق</button>
+            <button id="nextPost" class="btn btn-primary">➡ المنشور التالي</button>
+        </div>
     </div>
 
     <script>
-        // تحميل Facebook SDK
-        window.fbAsyncInit = function() {
-            FB.init({
-                appId      : 'EAAT1GyZACCpcBO7RTAUk1iPjxkItfDk8jF13zwg7FMSEUjQq9N0f9ZCsevQg1dsZAHHZCrNMgt5KVqFAFZC3MelCE0jXaaNDt8plyeoDTejTZCyakwDlzyLg8PzcFkt6UH79xuICCtsxsCTI7cAhUx0fuuw8fFpFIKECYmmOt2lS6BfxC7joel0wIuBdoyBFPpGAzdnFnbFCl7UFmrsNdmvUDo',  // ضع معرف تطبيقك هنا
-                cookie     : true,
-                xfbml      : true,
-                version    : 'v22.0'
-            });
+        var accesstoken = `EAAT1GyZACCpcBO7RTAUk1iPjxkItfDk8jF13zwg7FMSEUjQq9N0f9ZCsevQg1dsZAHHZCrNMgt5KVqFAFZC3MelCE0jXaaNDt8plyeoDTejTZCyakwDlzyLg8PzcFkt6UH79xuICCtsxsCTI7cAhUx0fuuw8fFpFIKECYmmOt2lS6BfxC7joel0wIuBdoyBFPpGAzdnFnbFCl7UFmrsNdmvUDo`;
+        var pageid = `636020372918318`;
+        var posts = [];
+        var currentIndex = 0;
 
-            // حالما يتم تحميل الـ SDK، قم بتحميل معلومات الصفحة
-            loadPageInfo();
-        };
-
-        // تحميل SDK بشكل غير متزامن
-        (function(d, s, id) {
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) {return;}
-            js = d.createElement(s); js.id = id;
-            js.src = "https://connect.facebook.net/ar_AR/sdk.js";
-            fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'facebook-jssdk'));
-
-        // دالة لتحميل معلومات الصفحة
-        function loadPageInfo() {
-            const PAGE_ID = '636020372918318'; // معرف الصفحة هنا
-            const infoContainer = document.getElementById("page-info");
-
-            // إذا كان هناك توكن صالح، قم باستدعاء API
-            FB.api(`/${PAGE_ID}`, 'GET', {}, function(response) {
-                console.log('Response:', response);  // طباعة الاستجابة في الكونسول
-
-                if (response && !response.error) {
-                    // عرض البيانات
-                    infoContainer.innerHTML = `
-                        <div class="info"><strong>اسم الصفحة:</strong> ${response.name}</div>
-                        <div class="info"><strong>معرف الصفحة:</strong> ${response.id}</div>
-                    `;
+        // جلب المنشورات من فيسبوك
+        function fetchPosts() {
+            fetch(`https://graph.facebook.com/v12.0/${pageid}?fields=posts{message}&access_token=${accesstoken}`)
+            .then(response => response.json())
+            .then(data => {
+                posts = data.posts.data.filter(post => post.message); // تصفية المنشورات التي تحتوي على نص فقط
+                if (posts.length > 0) {
+                    currentIndex = 0;
+                    showPost();
                 } else {
-                    infoContainer.innerHTML = "حدث خطأ أثناء جلب المعلومات.";
-                    console.error('Error:', response.error); // طباعة تفاصيل الخطأ
+                    document.getElementById('postBox').innerText = "لا يوجد منشورات متاحة!";
                 }
             });
         }
+
+        // عرض المنشور الحالي
+        function showPost() {
+            document.getElementById('postBox').innerText = posts[currentIndex].message;
+        }
+
+        // زر المنشور السابق
+        document.getElementById("prevPost").addEventListener("click", function() {
+            if (posts.length > 0) {
+                currentIndex = (currentIndex - 1 + posts.length) % posts.length; // التكرار داخل القائمة
+                showPost();
+            }
+        });
+
+        // زر المنشور التالي
+        document.getElementById("nextPost").addEventListener("click", function() {
+            if (posts.length > 0) {
+                currentIndex = (currentIndex + 1) % posts.length;
+                showPost();
+            }
+        });
+
+        // تحميل المنشورات عند فتح الصفحة
+        fetchPosts();
     </script>
 </body>
 </html>
