@@ -25,38 +25,36 @@
             background: #eee;
             border-radius: 5px;
         }
+        button {
+            margin-top: 20px;
+            padding: 10px 15px;
+            border: none;
+            background: blue;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>معلومات صفحة فيسبوك</h2>
         <div id="page-info">جاري تحميل المعلومات...</div>
+        <button onclick="loadPageInfo()">تحميل المعلومات</button>
     </div>
 
     <script>
         // تحميل Facebook SDK
         window.fbAsyncInit = function() {
             FB.init({
-                appId      : 'EAAT1GyZACCpcBO4Do96NO0AYiDpYRWXHLRxXlX30Ag65VN6Q9w3GGVeL6lADjqAL6xTrFjS9vwb7VHFaMUNLAUEnA0RYgOlyDsIc34m3B8rJRNPZCaDTvCC8pWTS6kZBggjDyUbBrnoe9RuIHER6yNYBxr6Sawjq3ebd3dryH6h4rTBBbmMS40vFEBiPa3YSc0YXuxe7VJjlzZCm3m0ZD',  // ضع معرف تطبيقك هنا
+                appId      : 'YOUR_APP_ID',  // ضع معرف تطبيقك هنا
                 cookie     : true,
                 xfbml      : true,
                 version    : 'v22.0'
             });
 
-            // عند تحميل SDK، نقوم بإجراء الطلب
-            FB.api('/636020372918318', 'GET', {}, function(response) {
-                // معالجة الاستجابة
-                const infoContainer = document.getElementById("page-info");
-                if (response && !response.error) {
-                    // عرض البيانات
-                    infoContainer.innerHTML = `
-                        <div class="info"><strong>اسم الصفحة:</strong> ${response.name}</div>
-                        <div class="info"><strong>معرف الصفحة:</strong> ${response.id}</div>
-                    `;
-                } else {
-                    infoContainer.innerHTML = "حدث خطأ أثناء جلب المعلومات.";
-                }
-            });
+            // حالما يتم تحميل الـ SDK، قم بتحميل معلومات الصفحة
+            loadPageInfo();
         };
 
         // تحميل SDK بشكل غير متزامن
@@ -67,6 +65,28 @@
             js.src = "https://connect.facebook.net/ar_AR/sdk.js";
             fjs.parentNode.insertBefore(js, fjs);
         }(document, 'script', 'facebook-jssdk'));
+
+        // دالة لتحميل معلومات الصفحة
+        function loadPageInfo() {
+            const PAGE_ID = '636020372918318'; // معرف الصفحة هنا
+            const infoContainer = document.getElementById("page-info");
+
+            // إذا كان هناك توكن صالح، قم باستدعاء API
+            FB.api(`/${PAGE_ID}`, 'GET', {}, function(response) {
+                console.log('Response:', response);  // طباعة الاستجابة في الكونسول
+
+                if (response && !response.error) {
+                    // عرض البيانات
+                    infoContainer.innerHTML = `
+                        <div class="info"><strong>اسم الصفحة:</strong> ${response.name}</div>
+                        <div class="info"><strong>معرف الصفحة:</strong> ${response.id}</div>
+                    `;
+                } else {
+                    infoContainer.innerHTML = "حدث خطأ أثناء جلب المعلومات.";
+                    console.error('Error:', response.error); // طباعة تفاصيل الخطأ
+                }
+            });
+        }
     </script>
 </body>
 </html>
